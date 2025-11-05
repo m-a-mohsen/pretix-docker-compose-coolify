@@ -2,7 +2,7 @@
 services:
   app:
     container_name: pretix_app
-    image: pretix/standalone:latest
+    image: pretix/standalone:stable
     restart: always
     depends_on:
       - database
@@ -12,8 +12,25 @@ services:
     environment:
       - CELERY_BROKER_URL=redis://cache:6379/2
       - CELERY_RESULT_BACKEND=redis://cache:6379/1
-    expose:
-      - "80"
+      - PRETIX_URL=https://v1.tickets.kulturleben-berlin.de
+    command: ["pretix", "web"]
+    networks:
+      - backend
+
+  worker:
+    container_name: pretix_worker
+    image: pretix/standalone:stable
+    restart: always
+    depends_on:
+      - database
+      - cache
+    volumes:
+      - pretix_data:/data
+    environment:
+      - CELERY_BROKER_URL=redis://cache:6379/2
+      - CELERY_RESULT_BACKEND=redis://cache:6379/1
+      - PRETIX_URL=https://v1.tickets.kulturleben-berlin.de
+    command: ["pretix", "worker"]
     networks:
       - backend
 
