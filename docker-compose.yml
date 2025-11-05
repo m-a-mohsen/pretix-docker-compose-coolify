@@ -41,7 +41,7 @@ services:
       # Celery environment variables
       - CELERY_BROKER_URL=redis://cache:6379/2
       - CELERY_RESULT_BACKEND=redis://cache:6379/1
-    command: ["web"]
+    command: ["all"]
     networks:
       - backend
 
@@ -86,7 +86,7 @@ services:
       # Celery environment variables
       - CELERY_BROKER_URL=redis://cache:6379/2
       - CELERY_RESULT_BACKEND=redis://cache:6379/1
-    command: ["worker"]
+
     networks:
       - backend
 
