@@ -11,8 +11,36 @@ services:
       - cache
     volumes:
       - pretix_data:/data
-      - ./docker/pretix/pretix.cfg:/etc/pretix/pretix.cfg:ro
     environment:
+      # Pretix basic settings
+      - PRETIX_INSTANCE_NAME=My Pretix Installation
+      - PRETIX_URL=https://v1.tickets.kulturleben-berlin.de
+      - PRETIX_CURRENCY=EUR
+      - PRETIX_DATADIR=/data
+      - PRETIX_TRUST_X_FORWARDED_FOR=on
+      - PRETIX_TRUST_X_FORWARDED_PROTO=on
+      - PRETIX_REGISTRATION=off
+      
+      # Locale settings
+      - PRETIX_DEFAULT_LOCALE=de
+      - PRETIX_TIMEZONE=Europe/Berlin
+      
+      # Database settings
+      - PRETIX_DATABASE_BACKEND=postgresql
+      - PRETIX_DATABASE_NAME=pretix
+      - PRETIX_DATABASE_USER=pretix
+      - PRETIX_DATABASE_PASSWORD=pretix
+      - PRETIX_DATABASE_HOST=database
+      
+      # Redis settings
+      - PRETIX_REDIS_LOCATION=redis://cache/0
+      - PRETIX_REDIS_SESSIONS=true
+      
+      # Celery settings
+      - PRETIX_CELERY_BACKEND=redis://cache/1
+      - PRETIX_CELERY_BROKER=redis://cache/2
+      
+      # Existing Celery environment variables
       - CELERY_BROKER_URL=redis://cache:6379/2
       - CELERY_RESULT_BACKEND=redis://cache:6379/1
     networks:

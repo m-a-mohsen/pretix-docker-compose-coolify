@@ -22,9 +22,10 @@ No formal test suite. Test by:
 - Handle exceptions gracefully with try/except blocks
 
 ### Configuration Files
-- Use INI format for Pretix config (pretix.cfg)
-- Comment lines with semicolon (;) in config files
-- Keep sensitive values (passwords, keys) as placeholders
+- Use environment variables for Pretix configuration (preferred)
+- If using config files, use INI format with semicolon (;) comments
+- Keep sensitive values (passwords, keys) as environment variables or Coolify secrets
+- See docker/pretix/README.md for complete environment variable reference
 
 ### Shell Scripts
 - Use `#!/bin/sh` shebang for portability
