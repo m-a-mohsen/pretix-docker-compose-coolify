@@ -11,6 +11,7 @@ services:
       - cache
     volumes:
       - pretix_data:/data
+      - ./docker/pretix/pretix.cfg:/etc/pretix/pretix.cfg:ro
     environment:
       # Pretix basic settings
       - PRETIX_INSTANCE_NAME=My Pretix Installation
@@ -20,6 +21,7 @@ services:
       - PRETIX_TRUST_X_FORWARDED_FOR=on
       - PRETIX_TRUST_X_FORWARDED_PROTO=on
       - PRETIX_REGISTRATION=off
+      - PRETIX_ALLOW_REVERSE_PROXY_HOSTS=v1.tickets.kulturleben-berlin.de
       
       # Locale settings
       - PRETIX_DEFAULT_LOCALE=de
