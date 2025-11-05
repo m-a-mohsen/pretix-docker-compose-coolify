@@ -13,7 +13,7 @@ services:
       - pretix_data:/data
       - ./docker/pretix/pretix.cfg:/etc/pretix/pretix.cfg
       - ./docker/pretix/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./docker/pretix/crontab:/tmp/crontab
+
     networks:
       - backend
 

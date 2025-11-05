@@ -1,6 +1,10 @@
 #!/usr/local/bin/python3
 
-from crontab import CronTab
+try:
+    from crontab import CronTab
+except ImportError:
+    print("Warning: crontab module not available, cron functionality disabled")
+    CronTab = None
 import argparse
 import logging
 import time
@@ -16,6 +20,11 @@ def _parse_crontab(crontab_file: str) -> list:
     Keyword arguments:
     crontab_file -> Specify the inserted crontab file
     """
+
+    if CronTab is None:
+        logger = logging.getLogger("parser")
+        logger.warning("CronTab module not available, returning empty job list")
+        return []
 
     logger = logging.getLogger("parser")
 
@@ -107,6 +116,11 @@ def _loop(jobs: list, test_mode: bool = False):
     test_mode -> Specify if you want to use the test mode or not (default False)
     """
 
+    if not jobs:
+        logger = logging.getLogger("loop")
+        logger.warning("No jobs to execute")
+        return
+
     logger = logging.getLogger("loop")
 
     logger.info("Entering main loop")
@@ -160,7 +174,7 @@ def _execute_command(command: str):
     logger.info(f"Standard error: {result.stderr}")
 
 
-def _signal_handler():
+def _signal_handler(signum, frame):
     """The method includes a functionality for the signal handler to exit a process"""
 
     logger = logging.getLogger("signal")
