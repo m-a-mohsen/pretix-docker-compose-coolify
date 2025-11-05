@@ -12,11 +12,8 @@ services:
     volumes:
       - pretix_data:/data
     environment:
-      # Existing Celery environment variables
       - CELERY_BROKER_URL=redis://cache:6379/2
       - CELERY_RESULT_BACKEND=redis://cache:6379/1
-      # Force URL configuration
-      - PRETIX_URL=https://v1.tickets.kulturleben-berlin.de
     networks:
       - backend
 
