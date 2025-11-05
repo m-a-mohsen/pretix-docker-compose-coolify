@@ -5,10 +5,10 @@ USER root
 ENV IMAGE_CRON_DIR="/image/cron" \
     IMAGE_CONFIG_DIR="/image/config"
 
-ADD files /image
 
 
-RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf
+
+# Cron functionality removed for Coolify compatibility
 
 USER pretixuser
 
