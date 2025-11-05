@@ -11,7 +11,6 @@ services:
       - cache
     volumes:
       - pretix_data:/data
-      - ./docker/pretix/pretix.cfg:/etc/pretix/pretix.cfg:ro
     environment:
       # Existing Celery environment variables
       - CELERY_BROKER_URL=redis://cache:6379/2
