@@ -2,7 +2,10 @@ FROM pretix/standalone:stable
 
 USER root
 
-# Create config directory and copy configuration file
+# Create config directory
+RUN mkdir -p /etc/pretix
+
+# Copy configuration file
 COPY pretix.cfg /etc/pretix/pretix.cfg
 
 USER pretixuser
