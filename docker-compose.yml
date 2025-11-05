@@ -14,8 +14,9 @@ services:
       - PRETIX_DATABASE_USER=pretix
       - PRETIX_DATABASE_PASSWORD=pretix
       - PRETIX_REDIS=redis://cache:6379/0
-      - PRETIX_EMAIL_FROM=admin@example.com
-      - PRETIX_URL=https://pretix.example.com
+      - CELERY_BROKER_URL=redis://cache:6379/0
+      - PRETIX_EMAIL_FROM=info@kulturleben-berlin.de
+      - PRETIX_URL=https://v1.tickets.kulturleben-berlin.de/
     volumes:
       # Persistent Pretix data
       - pretix_data:/data
