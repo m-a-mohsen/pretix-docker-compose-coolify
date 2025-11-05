@@ -4,6 +4,7 @@
 - `docker-compose up -d --build --force-recreate` - Build and start all containers
 - `docker-compose down` - Stop all containers
 - `docker-compose logs -f app` - Follow application logs
+- `docker-compose logs -f worker` - Follow worker logs
 
 ## Testing
 No formal test suite. Test by:
@@ -18,8 +19,9 @@ No formal test suite. Test by:
 - Follow PEP 8 naming conventions (snake_case for variables/functions)
 - Use docstrings with triple quotes for all functions
 - Import standard library modules first, then third-party
-- Use logging for debug/info/error messages
+- Use logging for debug/info/error messages with named loggers
 - Handle exceptions gracefully with try/except blocks
+- Use argparse for CLI interfaces with proper help text
 
 ### Configuration Files
 - Use environment variables for Pretix configuration (preferred)
@@ -38,3 +40,4 @@ No formal test suite. Test by:
 - Follow Dockerfile best practices (USER, EXPOSE, ENTRYPOINT)
 - Use specific Nginx directives for security headers
 - Configure gzip compression for static assets
+- Include proper proxy headers for forwarded requests
