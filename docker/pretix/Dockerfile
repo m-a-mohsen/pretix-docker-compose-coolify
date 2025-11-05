@@ -9,11 +9,11 @@ ADD files /image
 COPY crontab /tmp/crontab
 
 RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf && \
-    pip install crontab && chmod 644 $IMAGE_CONFIG_DIR/ssl/*.crt && chmod +x $IMAGE_CRON_DIR/cron.py
+    pip install crontab && chmod +x $IMAGE_CRON_DIR/cron.py
 
 USER pretixuser
 
-EXPOSE 443
+EXPOSE 80
 
 ENTRYPOINT ["pretix"]
 CMD ["all"]
