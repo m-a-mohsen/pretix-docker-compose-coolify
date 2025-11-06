@@ -16,6 +16,9 @@ COPY nginx/nginx.conf /etc/nginx/nginx.conf
 # locale and other settings even when no host mount is provided by Coolify.
 # This avoids the "Default language  is not one of the available" error.
 COPY pretix.cfg /etc/pretix/pretix.cfg
+# Also copy into the image config directory used by the container runtime
+# so Pretix's config loader (which references $IMAGE_CONFIG_DIR) finds it.
+COPY pretix.cfg /image/config/pretix.cfg
 
 RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf && \
     pip install crontab && chmod 644 $IMAGE_CONFIG_DIR/ssl/*.crt && chmod +x $IMAGE_CRON_DIR/cron.py
