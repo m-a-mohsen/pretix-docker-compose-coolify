@@ -51,3 +51,29 @@ Quick steps to deploy on Coolify:
 5. Deploy and monitor logs in Coolify. If you need to override cron or nginx locally, prefer uploading files through Coolify's file/volume options and ensure host path types match container paths (file vs directory).
 
 If you want, I can add a short `deploy-to-coolify.md` with screenshots or automate a GitHub Action that deploys to Coolify on push.
+
+Runtime templating (recommended)
+
+- This repository now renders `pretix.cfg` from environment variables at container start. That makes the image safe to build once and configure at runtime via Coolify's environment/editor.
+- Files added:
+	- `docker/pretix/files/config/pretix.cfg.template` — a template with `${VAR}` placeholders for all pretix configuration values used in production (instance name, URL, DB, Redis, mail, locale, etc.).
+	- `docker/pretix/entrypoint.sh` — an entrypoint script that safely renders the template into `/image/config/pretix.cfg` and `/etc/pretix/pretix.cfg` before exec'ing the `pretix` command.
+
+How it works in Coolify
+
+- Set application environment variables in Coolify (or paste keys from `.env.example`). Important keys:
+	- `PRETIX_INSTANCE_NAME` (e.g. `v1.tickets.example.org`)
+	- `PRETIX_URL` (e.g. `https://v1.tickets.example.org/`)
+	- `PRETIX_LOCALE_DEFAULT` (e.g. `de`)
+	- `CELERY_BROKER` / `BROKER_URL` / `CELERY_BROKER_URL` (e.g. `redis://cache/2`)
+	- DB and MAIL settings from `.env.example`
+
+- On container start the entrypoint will render the config from the runtime env and Pretix will read it. This avoids mismatches between a baked config and the environment Coolify provides.
+
+Notes and caveats
+
+- A fallback `docker/pretix/pretix.cfg` is still present in the image to help with local testing and to avoid hard failures during the migration; it will be overwritten by the rendered config at container start if the template file exists.
+- If you mount a host file onto `/etc/pretix/pretix.cfg` or `/image/config/pretix.cfg` via Coolify file mounts, that will override the rendered file — remove such mounts or upload the intended file via Coolify.
+- If you want a follow-up change, we can remove the baked fallback config to make the runtime template the single source of truth.
+
+If you'd like, I can prepare a short `deploy-to-coolify.md` that walks through the Coolify UI steps and shows the exact env variables to paste.

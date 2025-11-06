@@ -1,0 +1,71 @@
+PR draft: Make Pretix deployment Coolify-friendly and render config from runtime envs
+
+Summary
+
+This change set adapts the existing Pretix docker-compose repository for reliable deployment on Coolify (Traefik), focusing on minimal runtime changes and avoiding host file mount mismatches. The primary goal is to let Coolify manage TLS and runtime configuration via environment variables, and to ensure Pretix reads its configuration from those env vars at container startup.
+
+Files added/updated (high level)
+
+- docker-compose.yml
+  - Removed published ports for the app, added `env_file: .env` and explicit environment mapping for Pretix/DB/Redis/Mail values, and added healthchecks for database and cache.
+
+- docker/pretix/Dockerfile
+  - Adjusted to expose HTTP (80) only and to copy a baked nginx config into the image. Also copies a fallback `pretix.cfg` and installs an entrypoint script. Ensures `/image/config` and `/etc/pretix` are writable by the runtime user.
+
+- docker/pretix/nginx/nginx.conf
+  - Removed SSL/listen 443 directives — Traefik (Coolify) will terminate TLS. Nginx listens on 80 only.
+
+- docker/pretix/pretix.cfg
+  - Kept as a fallback for local testing; content updated to reflect deployed domain in this branch.
+
+- docker/pretix/files/config/pretix.cfg.template  (NEW)
+  - A template with `${VAR}` placeholders for all runtime settings (instance_name, url, DB, Redis, mail, locale, etc.).
+
+- docker/pretix/entrypoint.sh  (NEW)
+  - Runtime entrypoint that renders the template into `/image/config/pretix.cfg` and `/etc/pretix/pretix.cfg` using environment variables, then execs Pretix. Ensures runtime config is authoritative and matches Coolify-provided envs.
+
+- .env.example / .env
+  - Example and local env updated to include `PRETIX_LOCALE_DEFAULT=de` and Celery/Redis broker variables (`CELERY_BROKER`, `BROKER_URL`, `CELERY_BROKER_URL`).
+
+- .gitignore
+  - `.env` added to avoid committing secrets.
+
+Why these changes
+
+- Coolify mounts directories and manages TLS via Traefik; host file mounts (single file mounts) frequently cause mount-type mismatches and runtime surprises. Baking critical runtime files into the image caused mismatches between Coolify runtime envs and the baked config.
+
+- Rendering `pretix.cfg` from environment variables at container start makes the image build once and be configurable at runtime via Coolify's environment/secret editor. This follows 12-factor principles and reduces the need to modify the image on each deployment.
+
+- Using Redis as the Celery broker (configured via envs) prevents the default Celery AMQP fallback that tries to reach localhost:5672 and fails when not present.
+
+What I tested
+
+- Rebuilt the `app` image locally with the new entrypoint and template, recreated the container, and verified:
+  - The build includes the entrypoint and template files.
+  - The Coolify build-time envs (as shown in the helper logs) include the correct `PRETIX_INSTANCE_NAME`, `PRETIX_URL`, `PRETIX_LOCALE_DEFAULT=de`, and Redis broker variables.
+  - With the rendered config present, Pretix no longer rejects the Host header.
+
+How to validate in Coolify
+
+1. In the Coolify app settings, paste the environment variables from `.env.example` (set secure values for DB_PASSWORD and MAIL_* via secrets).
+2. Ensure `CELERY_BROKER` is set (e.g., `redis://cache/2`) and copy that into `BROKER_URL` and `CELERY_BROKER_URL` if desired.
+3. Deploy the app. Coolify should route traffic and terminate TLS. The entrypoint will render the config from the environment on startup.
+4. Inspect `docker logs <app-container>` and ensure no "Unknown host" or "Default language" errors appear.
+
+Follow-ups / optional next PRs
+
+- Remove baked fallback `docker/pretix/pretix.cfg` to avoid confusion and make the environment-templated config the sole source of truth.
+- Add a CI action that validates the rendered config by building the image and running the container with a test env, then checking the rendered `/image/config/pretix.cfg` content.
+- Add `deploy-to-coolify.md` with screenshots for the Coolify UI.
+
+Rollback plan
+
+- Revert this branch (or deploy the previous commit) if unexpected behavior occurs. Coolify allows quick rollbacks.
+
+Notes
+
+- If you mount a host file onto `/etc/pretix/pretix.cfg`, it will override the rendered file — avoid mounting single files in Coolify unless intentionally managing config files via uploaded host files.
+
+---
+
+(You can paste this text into the PR description when opening a PR from `coolify-v4` into `main`.)
