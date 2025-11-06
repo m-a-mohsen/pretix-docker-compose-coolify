@@ -13,7 +13,8 @@ RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf && \
 
 USER pretixuser
 
-EXPOSE 443
+# Expose HTTP only; Coolify/Traefik will terminate TLS
+EXPOSE 80
 
 ENTRYPOINT ["pretix"]
 CMD ["all"]
