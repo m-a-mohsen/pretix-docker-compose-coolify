@@ -1,7 +1,5 @@
-version: '3'
 services:
   app:
-    container_name: pretix_app
     build:
       dockerfile: Dockerfile
       context: ./docker/pretix
@@ -15,19 +13,42 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=${DB_HOST}
+      # Pretix configuration (from .env)
+      - PRETIX_INSTANCE_NAME=${PRETIX_INSTANCE_NAME}
+      - PRETIX_URL=${PRETIX_URL}
+      - PRETIX_CURRENCY=${PRETIX_CURRENCY}
+      - PRETIX_DATADIR=${PRETIX_DATADIR}
+      - PRETIX_REGISTRATION=${PRETIX_REGISTRATION}
+      - PRETIX_LOCALE_DEFAULT=${PRETIX_LOCALE_DEFAULT}
+      - PRETIX_TIMEZONE=${PRETIX_TIMEZONE}
+
+      # Database
+      - DB_BACKEND=${DB_BACKEND}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+
+      # Redis / Celery
       - REDIS_LOCATION=${REDIS_LOCATION}
-      - MAIL_HOST=${MAIL_HOST}
+      - CELERY_BACKEND=${CELERY_BACKEND}
+      - CELERY_BROKER=${CELERY_BROKER}
+      - BROKER_URL=${BROKER_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+
+      # Mail
       - MAIL_FROM=${MAIL_FROM}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_TLS=${MAIL_TLS}
+      - MAIL_SSL=${MAIL_SSL}
     networks:
       - backend
 
   database:
     image: postgres:17-alpine3.22
-    container_name: database
     ports:
       - "5432:5432"
     env_file:
@@ -38,17 +59,27 @@ services:
       - POSTGRES_DB=${DB_NAME:-pretix}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h localhost || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend
 
   cache:
     image: redis:alpine3.22
-    container_name: redis
     ports:
       - "6379:6379"
     env_file:
       - .env
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend
 
