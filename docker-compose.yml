@@ -11,7 +11,7 @@ services:
       - cache
     volumes:
       - pretix_data:/data
-      - ./docker/pretix/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # nginx config is baked into the image to avoid host-bind mount type mismatches
     env_file:
       - .env
     environment:
