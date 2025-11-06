@@ -11,9 +11,17 @@ services:
       - cache
     volumes:
       - pretix_data:/data
-      - ./docker/pretix/pretix.cfg:/etc/pretix/pretix.cfg
-      - ./docker/pretix/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./docker/pretix/crontab:/tmp/crontab
+      - ./docker/pretix/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_LOCATION=${REDIS_LOCATION}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_FROM=${MAIL_FROM}
     networks:
       - backend
 
@@ -22,9 +30,12 @@ services:
     container_name: database
     ports:
       - "5432:5432"
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=pretix
-      - POSTGRES_PASSWORD=pretix
+      - POSTGRES_USER=${DB_USER:-pretix}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-pretix}
+      - POSTGRES_DB=${DB_NAME:-pretix}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -35,6 +46,8 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    env_file:
+      - .env
     restart: always
     networks:
       - backend
