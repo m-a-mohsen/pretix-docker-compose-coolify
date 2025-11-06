@@ -13,7 +13,8 @@ if [ -f "$TEMPLATE_PATH" ]; then
 import os
 from string import Template
 
-tpl_path = os.environ.get('IMAGE_CONFIG_DIR','/image/config') + '/pretix.cfg.template'
+tpl_dir = os.environ.get('IMAGE_CONFIG_DIR','/image/config')
+tpl_path = tpl_dir + '/pretix.cfg.template'
 try:
     with open(tpl_path,'r') as f:
         tpl = Template(f.read())
@@ -21,10 +22,41 @@ except FileNotFoundError:
     print('Template not found:', tpl_path)
     raise SystemExit(0)
 
-# Use environment to substitute; safe_substitute leaves unknowns untouched
-rendered = tpl.safe_substitute(os.environ)
+# Provide reasonable defaults for variables used in the template.
+defaults = {
+    'PRETIX_INSTANCE_NAME': 'localhost',
+    'PRETIX_URL': 'http://localhost',
+    'PRETIX_CURRENCY': 'EUR',
+    'PRETIX_DATADIR': '/data',
+    'PRETIX_REGISTRATION': 'off',
+    'PRETIX_LOCALE_DEFAULT': 'de',
+    'PRETIX_TIMEZONE': 'Europe/Berlin',
+    'DB_BACKEND': 'postgresql',
+    'DB_NAME': 'pretix',
+    'DB_USER': 'pretix',
+    'DB_PASSWORD': 'pretix',
+    'DB_HOST': 'database',
+    'MAIL_FROM': 'no-reply@example.com',
+    'MAIL_HOST': 'localhost',
+    'MAIL_USER': '',
+    'MAIL_PASSWORD': '',
+    'MAIL_PORT': '587',
+    'MAIL_TLS': 'off',
+    'MAIL_SSL': 'off',
+    'REDIS_LOCATION': 'redis://cache/0',
+    'REDIS_SESSIONS': 'true',
+    'CELERY_BACKEND': 'redis://cache/1',
+    'CELERY_BROKER': 'redis://cache/2',
+}
 
-targets = ['/etc/pretix/pretix.cfg', os.environ.get('IMAGE_CONFIG_DIR','/image/config') + '/pretix.cfg']
+# Merge environment with defaults (environment wins)
+env = dict(os.environ)
+for k,v in defaults.items():
+    env.setdefault(k, v)
+
+rendered = tpl.safe_substitute(env)
+
+targets = ['/etc/pretix/pretix.cfg', tpl_dir + '/pretix.cfg']
 for t in targets:
     try:
         with open(t,'w') as f:
