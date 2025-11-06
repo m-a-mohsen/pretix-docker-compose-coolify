@@ -33,3 +33,21 @@ If you want to support my work, I ask you to take an unusual action inside the o
 
 ## License
 This product is available under the Apache 2.0 license.
+
+## Deploying to Coolify
+
+This repository contains a Pretix docker-compose configuration adjusted to run under Coolify (Traefik). Key notes:
+
+- Traefik (managed by Coolify) will terminate TLS for you. The container listens on port 80.
+- Configuration is provided via environment variables (see `.env.example`). In Coolify, paste the variables in the app's environment editor or use secrets for sensitive values.
+- We baked `nginx/nginx.conf` into the image to avoid host bind-mount mismatches when Coolify creates application folders.
+
+Quick steps to deploy on Coolify:
+
+1. Push this branch to your Git remote.
+2. Create a new application in Coolify pointing to this repo and branch. Use the Dockerfile build context `./docker/pretix`.
+3. In the Coolify app settings, add environment variables from `.env.example` (set real secrets via the GUI/secret store).
+4. Ensure the app routes to container port `80` (Coolify will provision TLS automatically).
+5. Deploy and monitor logs in Coolify. If you need to override cron or nginx locally, prefer uploading files through Coolify's file/volume options and ensure host path types match container paths (file vs directory).
+
+If you want, I can add a short `deploy-to-coolify.md` with screenshots or automate a GitHub Action that deploys to Coolify on push.
