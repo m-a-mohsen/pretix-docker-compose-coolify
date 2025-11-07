@@ -59,9 +59,19 @@ rendered = tpl.safe_substitute(env)
 targets = ['/etc/pretix/pretix.cfg', tpl_dir + '/pretix.cfg']
 for t in targets:
     try:
-        with open(t,'w') as f:
+        write_path = t
+        # If the target path exists and is a directory, write the file inside it
+        if os.path.isdir(t):
+            write_path = os.path.join(t, 'pretix.cfg')
+        else:
+            parent = os.path.dirname(t)
+            # Ensure parent directory exists
+            if parent and not os.path.isdir(parent):
+                os.makedirs(parent, exist_ok=True)
+
+        with open(write_path,'w') as f:
             f.write(rendered)
-        print('Wrote', t)
+        print('Wrote', write_path)
     except Exception as e:
         print('Failed writing', t, e)
 

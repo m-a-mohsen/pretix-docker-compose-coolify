@@ -6,7 +6,10 @@ ENV IMAGE_CRON_DIR="/image/cron" \
     IMAGE_CONFIG_DIR="/image/config"
 
 ADD files /image
-COPY crontab /tmp/crontab
+# Ensure the image contains the crontab file where the runtime expects it
+# so that bind-mounting or external tooling doesn't turn the path into a
+# directory. Place the file under the image cron dir used at runtime.
+COPY crontab /image/cron/crontab
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh || true
 
