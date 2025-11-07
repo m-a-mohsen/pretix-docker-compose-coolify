@@ -1,6 +1,22 @@
 #!/bin/sh
 set -e
 
+# Startup diagnostics: log resolved cron paths to aid debugging in deployment platforms
+# (Coolify can sometimes mount directories/files differently than expected).
+echo "[entrypoint] IMAGE_CRON_DIR=${IMAGE_CRON_DIR:-/image/cron}"
+echo "[entrypoint] Resolved cron script: ${IMAGE_CRON_DIR:-/image/cron}/cron.py"
+echo "[entrypoint] Resolved crontab path: ${IMAGE_CRON_DIR:-/image/cron}/crontab"
+if [ -d "${IMAGE_CRON_DIR:-/image/cron}" ]; then
+    echo "[entrypoint] ${IMAGE_CRON_DIR:-/image/cron} is a directory"
+else
+    echo "[entrypoint] ${IMAGE_CRON_DIR:-/image/cron} is NOT a directory"
+fi
+if [ -f "${IMAGE_CRON_DIR:-/image/cron}/crontab" ]; then
+    echo "[entrypoint] crontab exists and is a file"
+else
+    echo "[entrypoint] crontab missing or not a regular file"
+fi
+
 # Render pretix.cfg from template if present. This uses Python's Template
 # to expand ${VAR} placeholders from the environment into the final config.
 TEMPLATE_PATH="${IMAGE_CONFIG_DIR:-/image/config}/pretix.cfg.template"

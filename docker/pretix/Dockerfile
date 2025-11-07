@@ -12,6 +12,8 @@ ADD files /image
 COPY crontab /image/cron/crontab
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh || true
+# Ensure crontab is owned by the runtime user so the cron runner can read it
+RUN chown pretixuser:pretixuser /image/cron/crontab || true
 
 # Copy our baked nginx configuration into the image so we don't need a host bind-mount
 # The build context is `./docker/pretix`, so this copies `docker/pretix/nginx/nginx.conf` -> `/etc/nginx/nginx.conf`
