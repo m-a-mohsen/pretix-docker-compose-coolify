@@ -17,6 +17,25 @@ else
     echo "[entrypoint] crontab missing or not a regular file"
 fi
 
+# Fallback: if crontab is missing, create a safe default crontab file so the
+# cron runner has something to read. This avoids failures when deployment
+# platforms (e.g. Coolify) create an empty directory instead of a file.
+CRON_DIR="${IMAGE_CRON_DIR:-/image/cron}"
+CRONTAB_PATH="$CRON_DIR/crontab"
+if [ ! -f "$CRONTAB_PATH" ]; then
+    echo "[entrypoint] Creating default crontab at $CRONTAB_PATH"
+    mkdir -p "$CRON_DIR"
+    cat >"$CRONTAB_PATH" <<'CRON_EOF'
+# Default crontab provided by image entrypoint
+# Runs Pretix periodic tasks (adjust timing as needed)
+15,45 * * * * su pretixuser -c "PRETIX_CONFIG_FILE=/etc/pretix/pretix.cfg python -m pretix runperiodic"
+CRON_EOF
+    # Attempt to set ownership/permissions; ignore errors if not permitted
+    chown pretixuser:pretixuser "$CRONTAB_PATH" || true
+    chmod 644 "$CRONTAB_PATH" || true
+    echo "[entrypoint] Default crontab written"
+fi
+
 # Render pretix.cfg from template if present. This uses Python's Template
 # to expand ${VAR} placeholders from the environment into the final config.
 TEMPLATE_PATH="${IMAGE_CONFIG_DIR:-/image/config}/pretix.cfg.template"
