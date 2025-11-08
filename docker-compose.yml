@@ -10,6 +10,8 @@ services:
     volumes:
       - pretix_data:/data
       # nginx config is baked into the image to avoid host-bind mount type mismatches
+    expose:
+      - "80"
     env_file:
       - .env
     environment:
