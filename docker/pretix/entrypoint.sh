@@ -113,6 +113,20 @@ for t in targets:
 PY
 fi
 
+# Prepare webroot for ACME challenge fallback served by nginx.
+# If files are placed into /image/acme-challenge they will be copied into
+# the nginx webroot at /var/www/.well-known/acme-challenge so the token can be
+# served by the application if Traefik forwards the request.
+ACME_SRC_DIR="${IMAGE_ACME_DIR:-/image/acme-challenge}"
+ACME_DST_DIR="/var/www/.well-known/acme-challenge"
+if [ -d "$ACME_SRC_DIR" ]; then
+    echo "[entrypoint] Found $ACME_SRC_DIR; preparing $ACME_DST_DIR"
+    mkdir -p "$ACME_DST_DIR"
+    # Copy any files (ignore errors)
+    cp -a "$ACME_SRC_DIR"/* "$ACME_DST_DIR" 2>/dev/null || true
+    chown -R pretixuser:pretixuser /var/www || true
+fi
+
 # Exec pretix with whatever arguments were provided. The base image expects
 # the command to be run as the container's user (we keep existing USER in Dockerfile).
 exec pretix "$@"

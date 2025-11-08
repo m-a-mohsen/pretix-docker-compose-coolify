@@ -44,6 +44,10 @@ services:
       - MAIL_PORT=${MAIL_PORT}
       - MAIL_TLS=${MAIL_TLS}
       - MAIL_SSL=${MAIL_SSL}
+    labels:
+      # Ensure Traefik uses the expected Coolify network for service discovery
+      - "traefik.enable=true"
+      - "traefik.docker.network=coolify"
     networks:
       - backend
 
