@@ -50,6 +50,7 @@ services:
       - "traefik.docker.network=coolify"
     networks:
       - backend
+      - coolify
 
   database:
     image: postgres:17-alpine3.22
@@ -97,3 +98,8 @@ networks:
   backend:
     driver: bridge
     # Let Coolify/Traefik handle host binding and TLS. Removed host binding option.
+
+  # External network created/managed by Coolify / Traefik on the remote host.
+  # This allows Traefik (coolify-proxy) to discover the app container.
+  coolify:
+    external: true
