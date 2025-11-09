@@ -49,10 +49,13 @@ defaults = {
     'CELERY_BROKER': 'redis://cache/2',
 }
 
-# Merge environment with defaults (environment wins)
+# Merge environment with defaults. Treat empty environment variables as
+# "not set" so that defaults are used instead of writing empty values
 env = dict(os.environ)
-for k,v in defaults.items():
-    env.setdefault(k, v)
+for k, v in defaults.items():
+    # If the variable is not present or is an empty string, use the default
+    if not env.get(k):
+        env[k] = v
 
 rendered = tpl.safe_substitute(env)
 
