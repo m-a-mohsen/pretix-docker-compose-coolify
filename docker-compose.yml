@@ -44,6 +44,14 @@ services:
       - MAIL_PORT=${MAIL_PORT}
       - MAIL_TLS=${MAIL_TLS}
       - MAIL_SSL=${MAIL_SSL}
+    labels:
+      # Ensure Traefik routes to the container's HTTP port (nginx listens on 80 inside the image)
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      # Dokploy/Traefik often generates service names like pretixv2v-yr3x9o-19-web; set the
+      # loadbalancer port explicitly so Traefik doesn't try to reach 3000 by default.
+      - "traefik.http.services.pretixv2v-yr3x9o-19-web.loadbalancer.server.port=80"
+      - "traefik.http.services.pretixv2v-yr3x9o-19-websecure.loadbalancer.server.port=80"
     networks:
       - backend
 
