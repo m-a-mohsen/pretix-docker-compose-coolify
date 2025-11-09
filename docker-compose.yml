@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      dockerfile: Dockerfile
-      context: ./docker/pretix
+    image: mypretix:manualseats
     restart: always
     depends_on:
       - database

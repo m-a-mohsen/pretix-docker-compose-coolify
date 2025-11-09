@@ -36,13 +36,8 @@ RUN chown -R pretixuser:pretixuser /image/config /etc/pretix || true
 RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf && \
     pip install crontab && chmod 644 $IMAGE_CONFIG_DIR/ssl/*.crt && chmod +x $IMAGE_CRON_DIR/cron.py
 
+# Run as non-root user
 USER pretixuser
-
-# If plugins were installed, compile production assets inside the source tree.
-# This step is only executed when PRETIX_PLUGINS was provided at build time.
-RUN if [ -n "$PRETIX_PLUGINS" ]; then \
-    cd /pretix/src && make production; \
-    fi
 # Expose HTTP only; Coolify/Traefik will terminate TLS
 EXPOSE 80
 

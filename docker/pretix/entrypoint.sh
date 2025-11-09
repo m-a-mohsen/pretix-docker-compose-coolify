@@ -73,4 +73,35 @@ fi
 
 # Exec pretix with whatever arguments were provided. The base image expects
 # the command to be run as the container's user (we keep existing USER in Dockerfile).
+# If plugins were provided at build time (or image was built with PRETIX_PLUGINS),
+# ensure production assets are (re)built at container start when services like
+# Redis are available. We guard with a marker file so this runs only once.
+if [ -n "$PRETIX_PLUGINS" ] || [ -d /plugins ] ; then
+    if [ -d /pretix/src ] && [ ! -f /pretix/.plugins_built ]; then
+        echo "Building production assets because PRETIX_PLUGINS is set or /plugins exists"
+            # run make production; if it fails we do NOT create the marker file so
+            # the step will be retried on the next start when services may be ready.
+            if (cd /pretix/src && make production); then
+                echo "make production succeeded"
+                touch /pretix/.plugins_built || true
+            else
+                echo "make production failed; will retry on next start"
+                # increment failure counter and fail hard after 3 attempts
+                ATTEMPTS_FILE=/pretix/.plugins_failed_attempts
+                if [ -f "$ATTEMPTS_FILE" ]; then
+                    attempts=$(cat "$ATTEMPTS_FILE" 2>/dev/null || echo 0)
+                else
+                    attempts=0
+                fi
+                attempts=$((attempts + 1))
+                echo "$attempts" > "$ATTEMPTS_FILE" || true
+                echo "make production has failed $attempts time(s)"
+                if [ "$attempts" -ge 3 ]; then
+                    echo "make production failed $attempts times — exiting to surface the error" >&2
+                    exit 1
+                fi
+            fi
+    fi
+fi
+
 exec pretix "$@"
