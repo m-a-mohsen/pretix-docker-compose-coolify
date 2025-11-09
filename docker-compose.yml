@@ -48,6 +48,13 @@ services:
       # Ensure Traefik uses the expected Coolify network for service discovery
       - "traefik.enable=true"
       - "traefik.docker.network=coolify"
+      # ACME exception: ensure requests to the ACME HTTP-01 path are matched
+      # This creates a high-priority router for /.well-known/acme-challenge
+      - "traefik.http.routers.acme-exception.entrypoints=http"
+      - "traefik.http.routers.acme-exception.rule=Host(`staging.tickets.kulturleben-berlin.de`) && PathPrefix(`/.well-known/acme-challenge`)"
+      - "traefik.http.routers.acme-exception.priority=10000"
+      - "traefik.http.routers.acme-exception.service=acme-exception-svc"
+      - "traefik.http.services.acme-exception-svc.loadbalancer.server.port=80"
     networks:
       - backend
       - coolify
