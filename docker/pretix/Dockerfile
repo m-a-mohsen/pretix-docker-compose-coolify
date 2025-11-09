@@ -2,6 +2,13 @@ FROM pretix/standalone:stable
 
 USER root
 
+# Optionally install plugins during image build. Pass a space-separated list
+# via --build-arg PRETIX_PLUGINS="plugin1 plugin2" when building.
+ARG PRETIX_PLUGINS=""
+RUN if [ -n "$PRETIX_PLUGINS" ]; then \
+    pip3 install $PRETIX_PLUGINS; \
+    fi
+
 ENV IMAGE_CRON_DIR="/image/cron" \
     IMAGE_CONFIG_DIR="/image/config"
 
@@ -30,6 +37,11 @@ RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf && \
 
 USER pretixuser
 
+# If plugins were installed, compile production assets inside the source tree.
+# This step is only executed when PRETIX_PLUGINS was provided at build time.
+RUN if [ -n "$PRETIX_PLUGINS" ]; then \
+    cd /pretix/src && make production; \
+    fi
 # Expose HTTP only; Coolify/Traefik will terminate TLS
 EXPOSE 80
 
