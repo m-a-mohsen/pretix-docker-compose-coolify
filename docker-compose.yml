@@ -44,6 +44,17 @@ services:
       - MAIL_PORT=${MAIL_PORT}
       - MAIL_TLS=${MAIL_TLS}
       - MAIL_SSL=${MAIL_SSL}
+    # Traefik labels (optional) - when using Traefik/Coolify these make the
+    # routing for this service explicit. Coolify may manage routing itself;
+    # keep or remove as appropriate for your deployment.
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pretix.rule=Host(`staging.tickets.kulturleben-berlin.de`)"
+      - "traefik.http.routers.pretix.entrypoints=websecure,web"
+      - "traefik.http.routers.pretix.tls=true"
+      - "traefik.http.routers.pretix.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.pretix.priority=10"
+      - "traefik.http.services.pretix.loadbalancer.server.port=80"
     networks:
       - backend
 
