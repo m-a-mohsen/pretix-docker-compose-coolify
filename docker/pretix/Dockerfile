@@ -1,3 +1,5 @@
+FROM ghcr.io/moritzlerch/pretix-manualseats as pretix_manualseats
+
 FROM pretix/standalone:stable
 
 USER root
@@ -31,6 +33,16 @@ COPY pretix.cfg /image/config/pretix.cfg
 # Ensure the runtime config directory is writable by the runtime user so
 # the entrypoint (which runs as that user) can render a config file there.
 RUN chown -R pretixuser:pretixuser /image/config /etc/pretix || true
+
+# Copy plugin sources from the upstream plugin image and install editable.
+# This follows the "COPY --from" workflow from the plugin docs. It will
+# pull the plugin image `ghcr.io/moritzlerch/pretix-manualseats` during build
+# and copy the plugin sources into /plugins. If you don't want to use the
+# plugin-image route, you can ignore these lines and use PRETIX_PLUGINS instead.
+COPY --from=pretix_manualseats /plugins/pretix_manualseats /plugins/pretix_manualseats
+RUN if [ -d /plugins/pretix_manualseats ]; then \
+    pip3 install -e /plugins/pretix_manualseats; \
+    fi
 
 RUN mv /image/supervisord/crond.conf /etc/supervisord/crond.conf && \
     pip install crontab && chmod 644 $IMAGE_CONFIG_DIR/ssl/*.crt && chmod +x $IMAGE_CRON_DIR/cron.py
