@@ -1,6 +1,6 @@
 services:
   app:
-    image: mypretix:manualseats
+    image: mamohsen/mypretix:manualseats
     restart: always
     depends_on:
       - database
