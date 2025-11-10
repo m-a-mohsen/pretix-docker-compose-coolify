@@ -1,6 +1,6 @@
 services:
   app:
-    image: mamohsen/mypretix:manualseats
+    image: "mamohsen/mypretix:${IMAGE_TAG:-manualseats}"
     restart: always
     depends_on:
       - database
