@@ -104,4 +104,15 @@ if [ -n "$PRETIX_PLUGINS" ] || [ -d /plugins ] ; then
     fi
 fi
 
+# Some orchestrators (Dokploy/Coolify) may override the container command
+# with things like `tail -f /dev/null` to keep the container running. The
+# pretix CLI does not have a "tail" command and will error with
+# "Unknown command: 'tail'" if we blindly `exec pretix "$@"`.
+#
+# If the first argument is `tail` (or another plain shell command), run it
+# directly instead of calling `pretix`.
+if [ "${1:-}" = "tail" ] || [ "${1:-}" = "sh" ] || [ "${1:-}" = "bash" ]; then
+    exec "$@"
+fi
+
 exec pretix "$@"
